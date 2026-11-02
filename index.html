@@ -49,6 +49,7 @@ button{border:0;cursor:pointer}
 .sh h2{margin:0 0 8px;font-size:18px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:99px;z-index:30;font-size:14px;max-width:90%}
 .stop{display:flex;gap:6px;align-items:center;padding:6px 0;border-top:1px solid var(--bd)}
+.palette-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px;margin:8px 0 14px}.palette-swatch{width:100%;aspect-ratio:1;border-radius:9px;border:1px solid rgba(0,0,0,.12);min-width:0;position:relative}.palette-swatch.selected:after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#17212b;font-weight:900;text-shadow:0 1px 3px #fff,1px 0 2px #fff}.palette-section{font-size:13px;font-weight:700;margin:14px 0 5px}.palette-tools{display:flex;gap:8px;align-items:center;margin-top:8px}.palette-tools input[type=color]{width:48px;height:42px;padding:3px;border:1px solid var(--bd);border-radius:9px;background:var(--cd)}.palette-tools input[type=text]{flex:1}
 .stop a{text-decoration:none;font-size:18px}
 </style></head><body>
 <div id="hdr"></div><div id="main"></div><div id="tabs"></div><div id="sheet"></div><div id="toast"></div>
@@ -62,6 +63,30 @@ function personColor(id){return (S.peopleColors&&S.peopleColors[id])||OW[id]||'#
 function categoryColor(id){return (S.categoryColors&&S.categoryColors[id])||CATS[id]||'#64748b'}
 function colorSet(group,id,v){if(!/^#[0-9a-fA-F]{6}$/.test(v))return;var k=group==='people'?'peopleColors':'categoryColors';if(!S[k])S[k]={};S[k][id]=v;save();render()}
 function resetColors(){if(!confirm('Restore all people, category, and bag colors to defaults?'))return;S.peopleColors={};S.categoryColors={};var d=bags0();S.bags.forEach(function(b){var x=d.filter(function(z){return z.id===b.id})[0];if(x)b.color=x.color});save();render();flash('Default colors restored')}
+var PALETTE={
+ '🌈 Vivid':['#FF3434','#FF8A00','#FFD600','#29B84A','#00B9C7','#2878F0','#7540D8','#EF168B'],
+ '✨ Bright':['#F4777D','#FFA64D','#F3D052','#79C978','#45C2C8','#69AEEA','#9877D8','#E879B0'],
+ '🫧 Soft':['#F8C8CC','#FFD9B8','#F8EAA8','#C8E8C7','#B9E7E6','#C4DDF5','#D6C9F0','#F1C9DF'],
+ '🩷 Pink':['#FFF0F5','#FFDCE8','#F8C0D5','#F19ABF','#E875A5','#D94D8B','#BD3678','#98265F'],
+ '🌿 Mint':['#EDFAF5','#D7F4E9','#B9EBDD','#91DCCB','#69CDB8','#43B9A4','#279D8B','#197D70'],
+ '🩵 Tiffany blue':['#E9FAF9','#D2F4F1','#B3EAE6','#8ADBD7','#5BCBC7','#35B7B8','#219DA4','#187F89'],
+ '💜 Lavender':['#F5F0FC','#E9DFFA','#D8C8F3','#C4ADEB','#AB8DE0','#9270D1','#7655B9','#5E4198'],
+ '🌼 Background neutrals':['#FFF8E9','#F8EBD6','#EEDCC5','#E6D0B9','#D9C3AA','#CDB79E','#BCA68F','#A9947D']
+};
+function paletteOpen(group,id){var v=group==='people'?personColor(id):group==='categories'?categoryColor(id):(bagOf(id)||{}).color||'#888888';ui.sheet={t:'palette',group:group,id:id,hex:v};render()}
+function paletteApply(v){
+ if(!/^#[0-9a-fA-F]{6}$/.test(v||'')){flash('Enter a valid HEX color');return}
+ var s=ui.sheet;if(!s||s.t!=='palette')return;
+ if(s.group==='people')colorSet('people',s.id,v);else if(s.group==='categories')colorSet('categories',s.id,v);else bagSet(s.id,'color',v);
+ S.recentColors=S.recentColors||[];S.recentColors=[v].concat(S.recentColors.filter(function(x){return x.toLowerCase()!==v.toLowerCase()})).slice(0,8);save();ui.sheet=null;render()
+}
+function paletteView(){
+ var s=ui.sheet,cur=s.hex||'#888888',h='<h2>Choose a color</h2><p class="mu">Pick a shade, or make your own.</p>';
+ if(S.recentColors&&S.recentColors.length)h+='<div class="palette-section">🕘 Recently used</div><div class="palette-grid">'+S.recentColors.map(function(v){return '<button class="palette-swatch '+(v.toLowerCase()===cur.toLowerCase()?'selected':'')+'" aria-label="'+v+'" title="'+v+'" style="background:'+v+'" onclick="paletteApply(\\''+v+'\\')"></button>'}).join('')+'</div>';
+ Object.keys(PALETTE).forEach(function(k){h+='<div class="palette-section">'+k+'</div><div class="palette-grid">'+PALETTE[k].map(function(v){return '<button class="palette-swatch '+(v.toLowerCase()===cur.toLowerCase()?'selected':'')+'" aria-label="'+v+'" title="'+v+'" style="background:'+v+'" onclick="paletteApply(\\''+v+'\\')"></button>'}).join('')+'</div>'});
+ h+='<div class="palette-section">🎨 Custom color</div><div class="palette-tools"><input type="color" value="'+cur+'" aria-label="Custom color" oninput="ui.sheet.hex=this.value;var x=document.getElementById(\\'paletteHex\\');if(x)x.value=this.value"><input id="paletteHex" type="text" value="'+cur+'" maxlength="7" aria-label="HEX color code" oninput="ui.sheet.hex=this.value" placeholder="#RRGGBB"><button class="btn" onclick="paletteApply(document.getElementById(\\'paletteHex\\').value)">Apply</button></div>';
+ return h
+}
 function personName(id){return (S.people&&S.people[id])||PEOPLE[id]||id}
 function personSet(id,v){v=String(v||'').trim();if(!v){flash('Name cannot be empty');return}if(!S.people)S.people={};S.people[id]=v;save();render()}
 var OWK={Mom:['mom','엄마'],Dad:['dad','아빠'],Baby:['baby','아기'],Shared:['shared','공용']};
@@ -253,7 +278,7 @@ function render(){
  $('#main').innerHTML=({pack:packView,spend:spendView,plan:planView})[ui.tab]();
  $('#tabs').innerHTML=[['pack','🧳','Pack'],['spend','💵','Spend'],['plan','🗺️','Plan']].map(function(x){return '<button class="'+(ui.tab===x[0]?'on':'')+'" onclick="setTab(\''+x[0]+'\')"><span>'+x[1]+'</span>'+x[2]+'</button>'}).join('')+'<button onclick="ui.sheet={t:\'set\'};render()"><span>⚙️</span>Settings</button>';
  var s=ui.sheet;
- $('#sheet').innerHTML=s?'<div class="bk" onclick="closeSheet(event)"><div class="sh">'+({item:itemSheet,bags:bagsSheet,exp:expSheet,set:setSheet,exp2:exportSheet})[s.t]()+'</div></div>':'';
+ $('#sheet').innerHTML=s?'<div class="bk" onclick="closeSheet(event)"><div class="sh">'+({item:itemSheet,bags:bagsSheet,exp:expSheet,set:setSheet,exp2:exportSheet,palette:paletteView})[s.t]()+'</div></div>':'';
 }
 render();
 </script></body></html>
