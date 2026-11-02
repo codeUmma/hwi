@@ -77,15 +77,19 @@ function paletteApply(v){
  if(!/^#[0-9a-fA-F]{6}$/.test(v||'')){flash('Enter a valid HEX color');return}
  var s=ui.sheet;if(!s||s.t!=='palette')return;
  s.hex=v;
- if(s.group==='people')colorSet('people',s.id,v);else if(s.group==='categories')colorSet('categories',s.id,v);else bagSet(s.id,'color',v);
- S.recentColors=S.recentColors||[];S.recentColors=[v].concat(S.recentColors.filter(function(x){return x.toLowerCase()!==v.toLowerCase()})).slice(0,8);save();render()
+ if(s.group==='people'){if(!S.peopleColors)S.peopleColors={};S.peopleColors[s.id]=v}
+ else if(s.group==='categories'){if(!S.categoryColors)S.categoryColors={};S.categoryColors[s.id]=v}
+ else S.bags.forEach(function(b){if(b.id===s.id)b.color=v});
+ S.recentColors=S.recentColors||[];S.recentColors=[v].concat(S.recentColors.filter(function(x){return x.toLowerCase()!==v.toLowerCase()})).slice(0,8);
+ save();
+ var box=$('#sheet');if(box)box.innerHTML='<div class="bk" onclick="closeSheet(event)"><div class="sh">'+paletteView()+'</div></div>';
 }
 function paletteView(){
  var s=ui.sheet,cur=s.hex||'#888888',h='<h2>Choose a color</h2><p class="mu">Pick a shade, or make your own.</p>';
- if(S.recentColors&&S.recentColors.length)h+='<div class="palette-section">🕘 Recently used</div><div class="palette-grid">'+S.recentColors.map(function(v){return '<button class="palette-swatch '+(v.toLowerCase()===cur.toLowerCase()?'selected':'')+'" aria-label="'+v+'" title="'+v+'" style="background:'+v+'" data-color="'+v+'" onclick="paletteApply(this.dataset.color)"></button>'}).join('')+'</div>';
+ if(S.recentColors&&S.recentColors.length)h+='<div class="palette-section">🕘 Recently used</div><div class="palette-grid">'+S.recentColors.map(function(v){return '<button class="palette-swatch '+(v.toLowerCase()===cur.toLowerCase()?'selected':'')+'" aria-label="'+v+'" title="'+v+'" style="background:'+v+'" data-color="'+v+'" onclick="event.stopPropagation();paletteApply(this.dataset.color)"></button>'}).join('')+'</div>';
  h+='<div class="palette-groups">';
  Object.keys(PALETTE).forEach(function(k){h+='<div class="palette-group"><div class="palette-section">'+k+'</div><div class="palette-grid">'+PALETTE[k].map(function(v){return '<button class="palette-swatch '+(v.toLowerCase()===cur.toLowerCase()?'selected':'')+'" aria-label="'+v+'" title="'+v+'" style="background:'+v+'" data-color="'+v+'" onclick="paletteApply(this.dataset.color)"></button>'}).join('')+'</div></div>'});
- h+='</div><div class="palette-section">🎨 Custom color</div><div class="palette-tools"><input type="color" value="'+cur+'" aria-label="Custom color" oninput="ui.sheet.hex=this.value;var x=document.getElementById(&quot;paletteHex&quot;);if(x)x.value=this.value"><input id="paletteHex" type="text" value="'+cur+'" maxlength="7" aria-label="HEX color code" oninput="ui.sheet.hex=this.value" placeholder="#RRGGBB"><button class="btn" onclick="paletteApply(document.getElementById(&quot;paletteHex&quot;).value)">Apply</button></div>';
+ h+='</div><div class="palette-section">🎨 Custom color</div><div class="palette-tools"><input type="color" value="'+cur+'" aria-label="Custom color" onchange="paletteApply(this.value)"><input id="paletteHex" type="text" value="'+cur+'" maxlength="7" aria-label="HEX color code" onchange="paletteApply(this.value)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();paletteApply(this.value)}" placeholder="#RRGGBB"></div>';
  return h
 }
 function personName(id){return (S.people&&S.people[id])||PEOPLE[id]||id}
