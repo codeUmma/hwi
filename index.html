@@ -76,8 +76,9 @@ function paletteOpen(group,id){var v=group==='people'?personColor(id):group==='c
 function paletteApply(v){
  if(!/^#[0-9a-fA-F]{6}$/.test(v||'')){flash('Enter a valid HEX color');return}
  var s=ui.sheet;if(!s||s.t!=='palette')return;
+ s.hex=v;
  if(s.group==='people')colorSet('people',s.id,v);else if(s.group==='categories')colorSet('categories',s.id,v);else bagSet(s.id,'color',v);
- S.recentColors=S.recentColors||[];S.recentColors=[v].concat(S.recentColors.filter(function(x){return x.toLowerCase()!==v.toLowerCase()})).slice(0,8);save();ui.sheet=null;render()
+ S.recentColors=S.recentColors||[];S.recentColors=[v].concat(S.recentColors.filter(function(x){return x.toLowerCase()!==v.toLowerCase()})).slice(0,8);save();render()
 }
 function paletteView(){
  var s=ui.sheet,cur=s.hex||'#888888',h='<h2>Choose a color</h2><p class="mu">Pick a shade, or make your own.</p>';
