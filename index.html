@@ -91,6 +91,8 @@ function migrate(o){
  return o}
 function load(){try{var v=JSON.parse(localStorage.getItem('hawaii-trip-v2'));if(v)return v;var o=JSON.parse(localStorage.getItem('hawaii-trip-v1'));if(o){o=migrate(o);if(!o.items.length)o.items=starter();return o}}catch(e){}return null}
 var S=load()||seed();
+S.appTitle=S.appTitle||'🌺 Hawaii';
+function titleSet(v){v=String(v||'').trim();if(!v){flash('Title cannot be empty');render();return}S.appTitle=v;save();render()}
 S.people=Object.assign({},PEOPLE,S.people||{});S.peopleColors=Object.assign({},S.peopleColors||{});S.categoryColors=Object.assign({},S.categoryColors||{});
 function save(){try{localStorage.setItem('hawaii-trip-v2',JSON.stringify(S))}catch(e){}}
 function today(){return dkey(Date.now())}
@@ -208,13 +210,13 @@ function stopDel(id,ix){S.days.forEach(function(d){if(d.id===id)d.stops.splice(i
 
 /* ---------- Settings / export ---------- */
 function setSheet(){
- return '<h2>Trip settings</h2><p class="mu">During your trip dates, Spend opens first.</p><h3 style="margin-top:16px">People</h3><p class="mu">Edit names and colors. Existing item assignments stay linked.</p>'+Object.keys(PEOPLE).map(function(id){return '<div class="two" style="margin:6px 0"><label class="mu" style="width:76px;align-self:center">'+id+'</label><input value="'+esc(personName(id))+'" onchange="personSet(\''+id+'\',this.value)"><input type="color" aria-label="'+id+' color" value="'+personColor(id)+'" style="width:52px;padding:2px" onchange="colorSet(\'people\',\''+id+'\',this.value)"></div>'}).join('')+'<h3 style="margin-top:18px">Expense category colors</h3><p class="mu">Choose any color for each category.</p>'+Object.keys(CATS).map(function(id){return '<div class="two" style="margin:6px 0"><label class="mu" style="flex:1">'+id+'</label><input type="color" aria-label="'+id+' color" value="'+categoryColor(id)+'" style="width:52px;padding:2px" onchange="colorSet(\'categories\',\''+id+'\',this.value)"></div>'}).join('')+'<p style="margin:12px 0 4px">Start date</p><input type="date" value="'+S.trip.start+'" onchange="S.trip.start=this.value;save()"><p style="margin:12px 0 4px">End date</p><input type="date" value="'+S.trip.end+'" onchange="S.trip.end=this.value;save()">'
+ return '<h2>Settings</h2><h3>Trip title</h3><input aria-label="Trip title" value="'+esc(S.appTitle)+'" onchange="titleSet(this.value)"><p class="mu">Change the title to reuse this app for another trip.</p><h3 style="margin-top:16px">Trip settings</h3><p class="mu">During your trip dates, Spend opens first.</p><h3 style="margin-top:16px">People</h3><p class="mu">Edit names and colors. Existing item assignments stay linked.</p>'+Object.keys(PEOPLE).map(function(id){return '<div class="two" style="margin:6px 0"><label class="mu" style="width:76px;align-self:center">'+id+'</label><input value="'+esc(personName(id))+'" onchange="personSet(\''+id+'\',this.value)"><input type="color" aria-label="'+id+' color" value="'+personColor(id)+'" style="width:52px;padding:2px" onchange="colorSet(\'people\',\''+id+'\',this.value)"></div>'}).join('')+'<h3 style="margin-top:18px">Expense category colors</h3><p class="mu">Choose any color for each category.</p>'+Object.keys(CATS).map(function(id){return '<div class="two" style="margin:6px 0"><label class="mu" style="flex:1">'+id+'</label><input type="color" aria-label="'+id+' color" value="'+categoryColor(id)+'" style="width:52px;padding:2px" onchange="colorSet(\'categories\',\''+id+'\',this.value)"></div>'}).join('')+'<p style="margin:12px 0 4px">Start date</p><input type="date" value="'+S.trip.start+'" onchange="S.trip.start=this.value;save()"><p style="margin:12px 0 4px">End date</p><input type="date" value="'+S.trip.end+'" onchange="S.trip.end=this.value;save()">'
  +'<div class="two" style="margin-top:14px"><button class="btn grow" onclick="ui.sheet=null;if(inTrip())ui.tab=\'spend\';render()">Save</button><button class="ghost" onclick="addStarter()">Add starter items</button></div>'
  +'<button class="ghost" style="margin-top:10px;width:100%" onclick="resetColors()">Restore default colors</button>'
  +'<button class="ghost" style="margin-top:10px;width:100%" onclick="ui.sheet={t:\'exp2\'};render()">Export / import data</button>'
  +'<button class="ghost danger" style="margin-top:10px;width:100%" onclick="resetAll()">'+(ui.reset?'Tap again to erase everything':'Reset all data')+'</button>'}
 function resetAll(){if(!ui.reset){ui.reset=1;render();return}S=seed();save();ui.reset=0;ui.sheet=null;render()}
-function exportObj(){return{app:'hawaii-trip-notes',version:2,exportedAt:new Date().toISOString(),trip:S.trip,people:S.people,peopleColors:S.peopleColors,categoryColors:S.categoryColors,
+function exportObj(){return{app:'hawaii-trip-notes',version:2,exportedAt:new Date().toISOString(),trip:S.trip,appTitle:S.appTitle,people:S.people,peopleColors:S.peopleColors,categoryColors:S.categoryColors,
  bags:S.bags.map(function(b){return{name:b.name,color:b.color,places:b.places}}),
  items:S.items.map(function(i){return{name:i.name,owner:i.owner,status:i.st==='buy'?'to_buy':i.st==='packed'?'packed':'to_pack',bag:(bagOf(i.bag)||{}).name||'',place:i.place}}),
  expenses:S.exp.map(function(e){return{amount:e.a,note:e.m,category:e.c,date:new Date(e.t).toISOString()}}),itinerary:S.days}}
@@ -230,7 +232,7 @@ function importJson(){
  try{var o=JSON.parse(ui.impText||'');if(!o.items||!o.bags)throw 0;
   var B=o.bags.map(function(b){return{id:uid(),name:b.name,ko:'',color:b.color||'#0d9488',places:b.places||[]}});
   S={bags:B,items:o.items.map(function(i){var b=B.filter(function(x){return x.name===i.bag})[0],st=i.status==='to_buy'?'buy':(i.status==='packed'&&b)?'packed':'todo';return{id:uid(),name:i.name,owner:i.owner||'Shared',st:st,bag:b&&st==='packed'?b.id:'',place:st==='packed'?(i.place||''):'',hint:''}}),
-   exp:(o.expenses||[]).map(function(e){return{id:uid(),a:+e.amount||0,m:e.note||'',c:e.category||'Other',t:Date.parse(e.date)||Date.now()}}),days:o.itinerary||[],trip:o.trip||{start:'',end:''},people:Object.assign({},PEOPLE,o.people||{}),peopleColors:Object.assign({},o.peopleColors||{}),categoryColors:Object.assign({},o.categoryColors||{})};
+   exp:(o.expenses||[]).map(function(e){return{id:uid(),a:+e.amount||0,m:e.note||'',c:e.category||'Other',t:Date.parse(e.date)||Date.now()}}),days:o.itinerary||[],trip:o.trip||{start:'',end:''},people:Object.assign({},PEOPLE,o.people||{}),peopleColors:Object.assign({},o.peopleColors||{}),categoryColors:Object.assign({},o.categoryColors||{}),appTitle:o.appTitle||'🌺 Hawaii'};
   save();ui.imp=0;ui.impText='';ui.sheet=null;render();flash('Imported')}catch(e){ui.imp=0;render();flash('That isn’t valid export JSON')}}
 function exportSheet(){
  return '<h2>Export / import</h2><p class="mu">Save a file or copy the JSON into your other app. It includes bags, items, expenses, and itinerary.</p>'
@@ -245,7 +247,7 @@ function closeSheet(e){if(e.target.classList.contains('bk')){ui.sheet=null;ui.re
 function hdr(){
  var t=today(),b;
  if(inTrip())b='On trip';else if(S.trip.start&&t<S.trip.start)b='D-'+Math.round((new Date(S.trip.start)-new Date(t))/864e5);else if(S.trip.end&&t>S.trip.end)b='Trip over';else b='Planning';
- return '<b>🌺 Hawaii</b><span class="badge">'+b+'</span>'}
+ return '<b>'+esc(S.appTitle)+'</b><span class="badge">'+b+'</span>'}
 function render(){
  $('#hdr').innerHTML=hdr();
  $('#main').innerHTML=({pack:packView,spend:spendView,plan:planView})[ui.tab]();
