@@ -58,6 +58,9 @@ var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'
 var uid=function(){return Math.random().toString(36).slice(2,9)};
 var OW={Mom:'#db2777',Dad:'#2563eb',Baby:'#d97706',Shared:'#64748b'};
 var PEOPLE={Mom:'Mom',Dad:'Dad',Baby:'Baby',Shared:'Shared'};
+function personColor(id){return (S.peopleColors&&S.peopleColors[id])||OW[id]||'#64748b'}
+function categoryColor(id){return (S.categoryColors&&S.categoryColors[id])||CATS[id]||'#64748b'}
+function colorSet(group,id,v){if(!/^#[0-9a-fA-F]{6}$/.test(v))return;var k=group==='people'?'peopleColors':'categoryColors';if(!S[k])S[k]={};S[k][id]=v;save();render()}
 function personName(id){return (S.people&&S.people[id])||PEOPLE[id]||id}
 function personSet(id,v){v=String(v||'').trim();if(!v){flash('Name cannot be empty');return}if(!S.people)S.people={};S.people[id]=v;save();render()}
 var OWK={Mom:['mom','엄마'],Dad:['dad','아빠'],Baby:['baby','아기'],Shared:['shared','공용']};
@@ -87,7 +90,7 @@ function migrate(o){
  return o}
 function load(){try{var v=JSON.parse(localStorage.getItem('hawaii-trip-v2'));if(v)return v;var o=JSON.parse(localStorage.getItem('hawaii-trip-v1'));if(o){o=migrate(o);if(!o.items.length)o.items=starter();return o}}catch(e){}return null}
 var S=load()||seed();
-S.people=Object.assign({},PEOPLE,S.people||{});
+S.people=Object.assign({},PEOPLE,S.people||{});S.peopleColors=Object.assign({},S.peopleColors||{});S.categoryColors=Object.assign({},S.categoryColors||{});
 function save(){try{localStorage.setItem('hawaii-trip-v2',JSON.stringify(S))}catch(e){}}
 function today(){return dkey(Date.now())}
 function inTrip(){var t=today();return !!(S.trip.start&&S.trip.end&&t>=S.trip.start&&t<=S.trip.end)}
@@ -123,12 +126,12 @@ function addStarter(){var have={};S.items.forEach(function(i){have[i.owner+'|'+i
 function packView(){
  var f=ui.owner,its=S.items.filter(function(i){return f==='All'||i.owner===f});
  var buy=its.filter(function(i){return i.st==='buy'}),todo=its.filter(function(i){return i.st==='todo'}),pk=its.filter(function(i){return i.st==='packed'});
- var h='<div class="card"><div class="chips" style="margin-top:0">'+['All','Mom','Dad','Baby','Shared'].map(function(o){return '<button class="chip '+(f===o?(o==='All'?'on':'col'):'')+'" '+(f===o&&o!=='All'?'style="background:'+OW[o]+'"':'')+' onclick="ui.owner=\''+o+'\';render()">'+esc(personName(o))+'</button>'}).join('')+'</div>'
+ var h='<div class="card"><div class="chips" style="margin-top:0">'+['All','Mom','Dad','Baby','Shared'].map(function(o){return '<button class="chip '+(f===o?(o==='All'?'on':'col'):'')+'" '+(f===o&&o!=='All'?'style="background:'+personColor(o)+'"':'')+' onclick="ui.owner=\''+o+'\';render()">'+esc(personName(o))+'</button>'}).join('')+'</div>'
  +'<div class="two"><input id="q" placeholder="Add an item (keyboard mic works)" value="'+esc(ui.q)+'" oninput="ui.q=this.value" onkeydown="if(event.key===\'Enter\')addItem()"><button class="btn" onclick="addItem()">Add</button></div>'
  +'<div class="chips" style="margin-bottom:0"><button class="chip '+(ui.qbuy?'on':'')+'" onclick="ui.qbuy=!ui.qbuy;render()">🛒 Add as to-buy</button></div></div>';
  h+='<div class="sum card"><div><b>'+pk.length+'/'+its.length+'</b><span class="mu">Packed</span></div><div><b>'+buy.length+'</b><span class="mu">To buy</span></div><div><b>'+todo.length+'</b><span class="mu">To pack</span></div></div>';
  if(!S.items.length)h+='<div class="card"><p class="mu">Nothing here yet. Add items or load the starter list.</p><button class="btn" onclick="addStarter()">Load starter list</button></div>';
- var row=function(i,btn){return '<div class="row"><div class="bar" style="background:'+OW[i.owner]+'"></div><div class="grow" onclick="openItem(\''+i.id+'\')"><div class="nm">'+esc(i.name)+'</div><div class="mu">'+esc(personName(i.owner))+'</div></div>'+btn+'</div>'};
+ var row=function(i,btn){return '<div class="row"><div class="bar" style="background:'+personColor(i.owner)+'"></div><div class="grow" onclick="openItem(\''+i.id+'\')"><div class="nm">'+esc(i.name)+'</div><div class="mu">'+esc(personName(i.owner))+'</div></div>'+btn+'</div>'};
  if(buy.length)h+='<div class="card"><h3>🛒 To buy <span class="mu">'+buy.length+'</span></h3>'+buy.map(function(i){return row(i,'<button class="go ghost" onclick="setSt(\''+i.id+'\',\'todo\')">Bought ✓</button>')}).join('')+'</div>';
  if(todo.length)h+='<div class="card"><h3>📋 To pack <span class="mu">'+todo.length+'</span></h3>'+todo.map(function(i){return row(i,'<button class="go btn" onclick="openItem(\''+i.id+'\',1)">Pack</button>')}).join('')+'</div>';
  S.bags.forEach(function(b){var m=pk.filter(function(i){return i.bag===b.id});if(!m.length)return;
@@ -167,12 +170,12 @@ function spendView(){
  S.exp.forEach(function(e){all+=e.a;if(dkey(e.t)===tk)tt+=e.a;bc[e.c]=(bc[e.c]||0)+e.a});
  var h='<div class="card"><input id="amt" class="big" inputmode="decimal" placeholder="$ 0" value="'+esc(ui.amt)+'" oninput="ui.amt=this.value" onkeydown="if(event.key===\'Enter\')addExp()">'
  +'<div style="height:8px"></div><input id="memo" placeholder="Note (optional), e.g. lunch 25" value="'+esc(ui.memo)+'" oninput="ui.memo=this.value" onkeydown="if(event.key===\'Enter\')addExp()">'
- +'<div class="chips"><button class="chip '+(ui.cat?'':'on')+'" onclick="ui.cat=null;render()">Auto</button>'+Object.keys(CATS).map(function(c){return '<button class="chip '+(ui.cat===c?'col':'')+'" '+(ui.cat===c?'style="background:'+CATS[c]+'"':'')+' onclick="ui.cat=\''+c+'\';render()">'+c+'</button>'}).join('')+'</div>'
+ +'<div class="chips"><button class="chip '+(ui.cat?'':'on')+'" onclick="ui.cat=null;render()">Auto</button>'+Object.keys(CATS).map(function(c){return '<button class="chip '+(ui.cat===c?'col':'')+'" '+(ui.cat===c?'style="background:'+categoryColor(c)+'"':'')+' onclick="ui.cat=\''+c+'\';render()">'+c+'</button>'}).join('')+'</div>'
  +'<button class="btn" style="width:100%" onclick="addExp()">Save</button></div>'
  +'<div class="sum card"><div><b>$'+tt.toFixed(2)+'</b><span class="mu">Today</span></div><div><b>$'+all.toFixed(2)+'</b><span class="mu">Total</span></div></div>';
  var cs=Object.keys(bc);
  if(cs.length)h+='<div class="card"><h3>By category</h3>'+cs.sort(function(a,b){return bc[b]-bc[a]}).map(function(c){return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>'+c+'</span><b>$'+bc[c].toFixed(2)+'</b></div><div class="cb" style="background:'+(CATS[c]||'#64748b')+';width:'+Math.max(4,bc[c]/all*100)+'%"></div></div>'}).join('')+'</div>';
- if(S.exp.length)h+='<div class="card"><h3>History</h3>'+S.exp.slice(0,40).map(function(e){var d=new Date(e.t);return '<div class="row" onclick="ui.sheet={t:\'exp\',id:\''+e.id+'\'};render()"><span class="dot" style="background:'+(CATS[e.c]||'#64748b')+'"></span><div class="grow"><div class="nm">'+esc(e.m||e.c)+'</div><div class="mu">'+e.c+' · '+(d.getMonth()+1)+'/'+d.getDate()+'</div></div><b>$'+e.a.toFixed(2)+'</b></div>'}).join('')+'</div>';
+ if(S.exp.length)h+='<div class="card"><h3>History</h3>'+S.exp.slice(0,40).map(function(e){var d=new Date(e.t);return '<div class="row" onclick="ui.sheet={t:\'exp\',id:\''+e.id+'\'};render()"><span class="dot" style="background:'+(categoryColor(e.c)||'#64748b')+'"></span><div class="grow"><div class="nm">'+esc(e.m||e.c)+'</div><div class="mu">'+e.c+' · '+(d.getMonth()+1)+'/'+d.getDate()+'</div></div><b>$'+e.a.toFixed(2)+'</b></div>'}).join('')+'</div>';
  return h}
 function addExp(){
  var a=parseFloat(String(ui.amt).replace(/[^0-9.]/g,'')),m=(ui.memo||'').trim();
@@ -204,12 +207,12 @@ function stopDel(id,ix){S.days.forEach(function(d){if(d.id===id)d.stops.splice(i
 
 /* ---------- Settings / export ---------- */
 function setSheet(){
- return '<h2>Trip settings</h2><p class="mu">During your trip dates, Spend opens first.</p><h3 style="margin-top:16px">People</h3><p class="mu">Edit display names. Existing item assignments stay linked.</p>'+Object.keys(PEOPLE).map(function(id){return '<div class="two" style="margin:6px 0"><label class="mu" style="width:76px;align-self:center">'+id+'</label><input value="'+esc(personName(id))+'" onchange="personSet(\''+id+'\',this.value)"></div>'}).join('')+'<p style="margin:12px 0 4px">Start date</p><input type="date" value="'+S.trip.start+'" onchange="S.trip.start=this.value;save()"><p style="margin:12px 0 4px">End date</p><input type="date" value="'+S.trip.end+'" onchange="S.trip.end=this.value;save()">'
+ return '<h2>Trip settings</h2><p class="mu">During your trip dates, Spend opens first.</p><h3 style="margin-top:16px">People</h3><p class="mu">Edit names and colors. Existing item assignments stay linked.</p>'+Object.keys(PEOPLE).map(function(id){return '<div class="two" style="margin:6px 0"><label class="mu" style="width:76px;align-self:center">'+id+'</label><input value="'+esc(personName(id))+'" onchange="personSet(\''+id+'\',this.value)"><input type="color" aria-label="'+id+' color" value="'+personColor(id)+'" style="width:52px;padding:2px" onchange="colorSet(\'people\',\''+id+'\',this.value)"></div>'}).join('')+'<h3 style="margin-top:18px">Expense category colors</h3><p class="mu">Choose any color for each category.</p>'+Object.keys(CATS).map(function(id){return '<div class="two" style="margin:6px 0"><label class="mu" style="flex:1">'+id+'</label><input type="color" aria-label="'+id+' color" value="'+categoryColor(id)+'" style="width:52px;padding:2px" onchange="colorSet(\'categories\',\''+id+'\',this.value)"></div>'}).join('')+'<p style="margin:12px 0 4px">Start date</p><input type="date" value="'+S.trip.start+'" onchange="S.trip.start=this.value;save()"><p style="margin:12px 0 4px">End date</p><input type="date" value="'+S.trip.end+'" onchange="S.trip.end=this.value;save()">'
  +'<div class="two" style="margin-top:14px"><button class="btn grow" onclick="ui.sheet=null;if(inTrip())ui.tab=\'spend\';render()">Save</button><button class="ghost" onclick="addStarter()">Add starter items</button></div>'
  +'<button class="ghost" style="margin-top:10px;width:100%" onclick="ui.sheet={t:\'exp2\'};render()">Export / import data</button>'
  +'<button class="ghost danger" style="margin-top:10px;width:100%" onclick="resetAll()">'+(ui.reset?'Tap again to erase everything':'Reset all data')+'</button>'}
 function resetAll(){if(!ui.reset){ui.reset=1;render();return}S=seed();save();ui.reset=0;ui.sheet=null;render()}
-function exportObj(){return{app:'hawaii-trip-notes',version:2,exportedAt:new Date().toISOString(),trip:S.trip,people:S.people,
+function exportObj(){return{app:'hawaii-trip-notes',version:2,exportedAt:new Date().toISOString(),trip:S.trip,people:S.people,peopleColors:S.peopleColors,categoryColors:S.categoryColors,
  bags:S.bags.map(function(b){return{name:b.name,color:b.color,places:b.places}}),
  items:S.items.map(function(i){return{name:i.name,owner:i.owner,status:i.st==='buy'?'to_buy':i.st==='packed'?'packed':'to_pack',bag:(bagOf(i.bag)||{}).name||'',place:i.place}}),
  expenses:S.exp.map(function(e){return{amount:e.a,note:e.m,category:e.c,date:new Date(e.t).toISOString()}}),itinerary:S.days}}
@@ -225,7 +228,7 @@ function importJson(){
  try{var o=JSON.parse(ui.impText||'');if(!o.items||!o.bags)throw 0;
   var B=o.bags.map(function(b){return{id:uid(),name:b.name,ko:'',color:b.color||'#0d9488',places:b.places||[]}});
   S={bags:B,items:o.items.map(function(i){var b=B.filter(function(x){return x.name===i.bag})[0],st=i.status==='to_buy'?'buy':(i.status==='packed'&&b)?'packed':'todo';return{id:uid(),name:i.name,owner:i.owner||'Shared',st:st,bag:b&&st==='packed'?b.id:'',place:st==='packed'?(i.place||''):'',hint:''}}),
-   exp:(o.expenses||[]).map(function(e){return{id:uid(),a:+e.amount||0,m:e.note||'',c:e.category||'Other',t:Date.parse(e.date)||Date.now()}}),days:o.itinerary||[],trip:o.trip||{start:'',end:''},people:Object.assign({},PEOPLE,o.people||{})};
+   exp:(o.expenses||[]).map(function(e){return{id:uid(),a:+e.amount||0,m:e.note||'',c:e.category||'Other',t:Date.parse(e.date)||Date.now()}}),days:o.itinerary||[],trip:o.trip||{start:'',end:''},people:Object.assign({},PEOPLE,o.people||{}),peopleColors:Object.assign({},o.peopleColors||{}),categoryColors:Object.assign({},o.categoryColors||{})};
   save();ui.imp=0;ui.impText='';ui.sheet=null;render();flash('Imported')}catch(e){ui.imp=0;render();flash('That isn’t valid export JSON')}}
 function exportSheet(){
  return '<h2>Export / import</h2><p class="mu">Save a file or copy the JSON into your other app. It includes bags, items, expenses, and itinerary.</p>'
