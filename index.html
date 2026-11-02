@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hawaii Trip Notes</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg:#f4f6f8;--cd:#fff;--tx:#17212b;--mu:#667383;--bd:#e1e6eb;--pr:#0f9d9a;--pt:#fff;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1418;--cd:#192027;--tx:#eaf0f5;--mu:#98a5b3;--bd:#2a333c;--pr:#34d1cc;--pt:#062524;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1418;--cd:#192027;--tx:#eaf0f5;--mu:#98a5b3;--bd:#2a333c;--pr:#34d1cc;--pt:#062524;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,"Segoe UI",Roboto,"Apple SD Gothic Neo",sans-serif}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+#hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 16px 8px;display:flex;justify-content:space-between;align-items:center}
+#hdr b{font-size:20px}.badge{font-size:13px;padding:4px 10px;border-radius:99px;background:var(--pr);color:var(--pt);font-weight:600}
+#main{padding:0 16px 16px;max-width:640px;margin:0 auto}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:12px}
+h3{margin:0 0 8px;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.mu{color:var(--mu);font-size:13px}
+input,button,textarea{font:inherit;color:inherit}
+input,textarea{width:100%;padding:11px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);min-width:0}
+textarea{height:110px;font:12px/1.3 ui-monospace,Menlo,monospace;margin-top:8px}
+input:focus,button:focus-visible,textarea:focus{outline:2px solid var(--pr);outline-offset:1px}
+button{border:0;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{padding:8px 12px;border-radius:99px;border:1px solid var(--bd);background:var(--cd);font-size:14px}
+.chip.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.col{color:#fff;border-color:transparent}
+.btn{background:var(--pr);color:var(--pt);padding:11px 16px;border-radius:10px;font-weight:700}
+.ghost{background:transparent;border:1px solid var(--bd);padding:9px 12px;border-radius:10px}
+.danger{color:#dc2626}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--bd)}
+.bar{width:5px;align-self:stretch;border-radius:3px;flex:none}
+.grow{flex:1;min-width:0}
+.nm{font-weight:600;overflow-wrap:anywhere}
+.go{padding:8px 12px;border-radius:9px;font-size:14px;font-weight:700;flex:none}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;margin:3px 4px 3px 0;border-radius:10px;background:var(--bg);border:1px solid var(--bd);font-size:14px;text-align:left}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.bh{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:10px;color:#fff;font-weight:700;margin-bottom:6px}
+.big{font-size:34px;font-weight:700;padding:14px}
+.two{display:flex;gap:8px}
+.sum{display:flex;gap:8px}.sum div{flex:1;background:var(--bg);border-radius:10px;padding:8px 10px}.sum b{display:block;font-size:20px}
+.cb{height:8px;border-radius:4px;margin-top:3px}
+#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--cd);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px);z-index:6}
+#tabs button{flex:1;background:none;padding:10px 0 8px;font-size:12px;color:var(--mu)}
+#tabs button span{display:block;font-size:22px}
+#tabs button.on{color:var(--pr);font-weight:700}
+.bk{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sh{background:var(--cd);width:100%;max-width:640px;max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sh h2{margin:0 0 8px;font-size:18px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:99px;z-index:30;font-size:14px;max-width:90%}
+.stop{display:flex;gap:6px;align-items:center;padding:6px 0;border-top:1px solid var(--bd)}
+.stop a{text-decoration:none;font-size:18px}
+</style></head><body>
+<div id="hdr"></div><div id="main"></div><div id="tabs"></div><div id="sheet"></div><div id="toast"></div>
+<script>
+var $=function(s){return document.querySelector(s)};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var uid=function(){return Math.random().toString(36).slice(2,9)};
+var OW={Mom:'#db2777',Dad:'#2563eb',Baby:'#d97706',Shared:'#64748b'};
+var OWK={Mom:['mom','엄마'],Dad:['dad','아빠'],Baby:['baby','아기'],Shared:['shared','공용']};
+var CATS={Food:'#ea580c',Transport:'#2563eb',Shopping:'#db2777',Activities:'#059669',Lodging:'#7c3aed',Other:'#64748b'};
+var KW={Food:'lunch,dinner,breakfast,brunch,coffee,cafe,food,snack,ice cream,shave,starbucks,poke,restaurant,점심,저녁,아침,브런치,커피,식당,포케,간식,음료,빵,아이스크림,쉐이브,스타벅스,맥도날드',Transport:'uber,lyft,taxi,bus,gas,parking,toll,rental,택시,우버,리프트,주차,버스,렌터카,주유,기름',Shopping:'gift,souvenir,shop,target,walmart,costco,abc,pharmacy,diaper,sunscreen,기념품,선물,옷,쇼핑,기저귀,선크림,약국,마트,월마트,타겟,코스트코',Activities:'luau,ticket,tour,zoo,aquarium,snorkel,surf,museum,pearl harbor,boat,lesson,루아우,입장,티켓,투어,수족관,동물원,스노클,서핑,진주만,박물관,체험,보트,레슨',Lodging:'hotel,resort,airbnb,lodging,호텔,숙박,리조트,에어비앤비'};
+function guess(m){m=(m||'').toLowerCase();for(var c in KW){if(KW[c].split(',').some(function(k){return m.indexOf(k)>-1}))return c}return 'Other'}
+function dkey(t){var d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+var SU=['Main','Top section','Front pocket'],PC=['Main','Front pouch','Side pocket'],PE=['Main','Front pocket'];
+function bags0(){return[
+{id:'b1',name:'Blue Suitcase',ko:'블루 수트케이스',color:'#2563eb',places:SU.slice()},
+{id:'b2',name:'Lion Suitcase',ko:'라이언 수트케이스',color:'#d97706',places:SU.slice()},
+{id:'b3',name:'Mom Carry-on',ko:'엄마 캐리온',color:'#db2777',places:PC.slice()},
+{id:'b4',name:'Dad Carry-on',ko:'아빠 캐리온',color:'#0d9488',places:PC.slice()},
+{id:'b5',name:'Baby Carry-on / Diaper / Play Bag',ko:'아기 캐리온 다이퍼 놀이',color:'#65a30d',places:['Main','Front pouch','Side pocket','Snack section']},
+{id:'b6',name:'Mom Personal',ko:'엄마 퍼스널',color:'#7c3aed',places:PE.slice()},
+{id:'b7',name:'Dad Personal',ko:'아빠 퍼스널',color:'#475569',places:PE.slice()}]}
+var ST='Shared:Flight & hotel confirmations||b6,Car rental confirmation||b6,Baby birth certificate copy||b6,Car seat (FAA-approved)||,Portable stroller||,Mineral sunscreen (reef-safe)|b|b1,Bug spray (kid-safe)|b|b1,Rain jackets||b1,Beach towels||b1,Waterproof phone pouch|b|b6,Power bank||b7,Phone chargers & cables||b7,Zip bags & trash bags||b5,First-aid kit||b1,Shared toiletries||b1,Laundry bag||b2,Reusable shopping bag||b2;Mom:ID / green card / REAL ID||b6,Wallet & cards||b6,Swimsuit||b3,Sun hat & sunglasses||b3,Sandals||b3,Light layer for evenings||b3,Outfits for the week||b1,Medications||b6,Empty water bottle||b6;Dad:ID / green card / REAL ID||b7,Wallet & cards||b7,Swim trunks||b4,Sun hat & sunglasses||b4,Sandals||b4,Light layer for evenings||b4,Outfits for the week||b2,Medications||b7,Empty water bottle||b7;Baby:Diapers (flight + spare)||b5,Wipes||b5,Flight outfit change x2||b5,Pacifier / lovey||b5,Sippy cups x2||b5,Puree pouches|b|b5,Snacks (puffs/melts/crackers)||b5,Diaper cream||b5,Fever reducer & thermometer||b5,New toys / sticker books||b5,Tablet & kid headphones||b5,Blanket||b5,Rash guard|b|b2,Swim diapers|b|b2,Sun hat|b|b2,Water shoes|b|b2,Pajamas & day outfits||b2,White noise machine||b1,Bibs & spoon||b5';
+function starter(){var out=[];ST.split(';').forEach(function(g){var i=g.indexOf(':'),ow=g.slice(0,i);g.slice(i+1).split(',').forEach(function(s){var a=s.split('|');out.push({id:uid(),name:a[0],owner:ow,st:a[1]==='b'?'buy':'todo',bag:'',place:'',hint:a[2]||''})})});return out}
+function seed(){return{bags:bags0(),items:starter(),exp:[],days:[],trip:{start:'',end:''}}}
+function migrate(o){
+ var OM={'엄마':'Mom','아빠':'Dad','아기':'Baby','공용':'Shared'},CM={'식비':'Food','교통':'Transport','쇼핑':'Shopping','액티비티':'Activities','숙소':'Lodging','기타':'Other'},
+ PM={'메인':'Main','앞 파우치':'Front pouch','사이드':'Side pocket','위쪽 칸':'Top section','앞 주머니':'Front pocket','사이드 주머니':'Side pocket','간식 칸':'Snack section'},
+ BN={'블루 수트케이스':'Blue Suitcase','라이언 수트케이스':'Lion Suitcase','엄마 캐리온':'Mom Carry-on','아빠 캐리온':'Dad Carry-on','아기 캐리온/다이퍼/놀이 가방':'Baby Carry-on / Diaper / Play Bag','엄마 퍼스널':'Mom Personal','아빠 퍼스널':'Dad Personal'},B=bags0();
+ o.items.forEach(function(i){i.owner=OM[i.owner]||i.owner;i.place=PM[i.place]||i.place;i.hint=i.hint||''});
+ o.exp.forEach(function(e){e.c=CM[e.c]||e.c});
+ o.bags.forEach(function(b){b.name=BN[b.name]||b.name;b.places=b.places.map(function(p){return PM[p]||p});var d=B.filter(function(x){return x.id===b.id})[0];if(d&&b.ko===undefined)b.ko=d.ko});
+ return o}
+function load(){try{var v=JSON.parse(localStorage.getItem('hawaii-trip-v2'));if(v)return v;var o=JSON.parse(localStorage.getItem('hawaii-trip-v1'));if(o){o=migrate(o);if(!o.items.length)o.items=starter();return o}}catch(e){}return null}
+var S=load()||seed();
+function save(){try{localStorage.setItem('hawaii-trip-v2',JSON.stringify(S))}catch(e){}}
+function today(){return dkey(Date.now())}
+function inTrip(){var t=today();return !!(S.trip.start&&S.trip.end&&t>=S.trip.start&&t<=S.trip.end)}
+var ui={tab:inTrip()?'spend':'pack',owner:'All',q:'',qbuy:false,amt:'',memo:'',cat:null,sheet:null,reset:0,imp:0,impText:'',lastBag:''};
+function bagOf(id){return S.bags.filter(function(b){return b.id===id})[0]}
+function flash(t){var e=$('#toast');e.innerHTML='<div class="toast">'+esc(t)+'</div>';setTimeout(function(){e.innerHTML=''},2000)}
+
+/* ---------- Pack ---------- */
+var PK={main:'메인',front:'앞',side:'사이드',top:'위',snack:'간식'};
+function loose(p){return new RegExp(p.replace(/\s/g,'').split('').map(function(c){return c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}).join('\\s*'),'i')}
+function parse(t){
+ var st=ui.qbuy?'buy':'todo',owner=ui.owner==='All'?'Shared':ui.owner,bag=null,place='',best=0,ns=t.replace(/\s/g,'').toLowerCase();
+ S.bags.forEach(function(b){var k=(b.name+' '+(b.ko||'')).toLowerCase().split(/[\s\/]+/).filter(function(w){return w.length>1&&w!=='bag'&&ns.indexOf(w)>-1}).length;if(k>best){best=k;bag=b}});
+ var r=t;
+ if(bag&&/넣었|챙겼|쌌|담았|넣음|챙김|쌈|\bpacked\b|\bput\b/i.test(t)){
+  st='packed';
+  (bag.name+' '+(bag.ko||'')).split(/[\s\/]+/).filter(function(w){return w.length>1}).forEach(function(w){r=r.replace(new RegExp(w.replace(/[.*+?^${}()|[\]\\-]/g,'\\$&'),'ig'),' ')});
+  var hit=bag.places.filter(function(p){var f=p.split(' ')[0].toLowerCase();return loose(p).test(t)||(PK[f]&&t.indexOf(PK[f])>-1)})[0];
+  if(hit){place=hit;var f=hit.split(' ')[0].toLowerCase();if(loose(hit).test(r))r=r.replace(loose(hit),' ');else r=r.replace(new RegExp(PK[f]+'\\s?(파우치|주머니|칸|쪽|포켓)?'),' ')}
+  r=r.replace(/(^|\s)(in|into|to|the|bag)(?=\s|$)/gi,' ')
+ }else bag=null;
+ r=r.replace(/가방/g,' ');
+ for(var o in OWK){OWK[o].forEach(function(w){if(new RegExp(w,'i').test(r)){owner=o;r=r.replace(new RegExp(w,'ig'),' ')}})}
+ if(st!=='packed'&&/사야|사기|구입|구매|사러|살\s?것|\bbuy\b/i.test(r)){st='buy';r=r.replace(/사야\S*|사기|구입\S*|구매\S*|사러|살\s?것|\bneed to buy\b|\bbuy\b/ig,' ')}
+ r=r.replace(/(넣었어요?|넣었다|넣음|챙겼어요?|챙김|쌌어요?|담았어요?|쌈|\bpacked\b|\bput\b)/ig,' ').replace(/(^|\s)(에다가|에다|에|을|를|좀)(?=\s|$)/g,' ');
+ var name=r.replace(/\s+/g,' ').trim()||t;
+ return{id:uid(),name:name,owner:owner,st:st,bag:bag?bag.id:'',place:place,hint:''}}
+function addItem(){var t=ui.q.trim();if(!t)return;var it=parse(t);S.items.push(it);ui.q='';save();render();
+ flash(it.st==='packed'?it.name+' → '+bagOf(it.bag).name+(it.place?' / '+it.place:''):it.name+' added')}
+function addStarter(){var have={};S.items.forEach(function(i){have[i.owner+'|'+i.name.toLowerCase()]=1});var n=0;
+ starter().forEach(function(i){if(!have[i.owner+'|'+i.name.toLowerCase()]){S.items.push(i);n++}});
+ save();ui.sheet=null;render();flash(n+' items added')}
+function packView(){
+ var f=ui.owner,its=S.items.filter(function(i){return f==='All'||i.owner===f});
+ var buy=its.filter(function(i){return i.st==='buy'}),todo=its.filter(function(i){return i.st==='todo'}),pk=its.filter(function(i){return i.st==='packed'});
+ var h='<div class="card"><div class="chips" style="margin-top:0">'+['All','Mom','Dad','Baby','Shared'].map(function(o){return '<button class="chip '+(f===o?(o==='All'?'on':'col'):'')+'" '+(f===o&&o!=='All'?'style="background:'+OW[o]+'"':'')+' onclick="ui.owner=\''+o+'\';render()">'+o+'</button>'}).join('')+'</div>'
+ +'<div class="two"><input id="q" placeholder="Add an item (keyboard mic works)" value="'+esc(ui.q)+'" oninput="ui.q=this.value" onkeydown="if(event.key===\'Enter\')addItem()"><button class="btn" onclick="addItem()">Add</button></div>'
+ +'<div class="chips" style="margin-bottom:0"><button class="chip '+(ui.qbuy?'on':'')+'" onclick="ui.qbuy=!ui.qbuy;render()">🛒 Add as to-buy</button></div></div>';
+ h+='<div class="sum card"><div><b>'+pk.length+'/'+its.length+'</b><span class="mu">Packed</span></div><div><b>'+buy.length+'</b><span class="mu">To buy</span></div><div><b>'+todo.length+'</b><span class="mu">To pack</span></div></div>';
+ if(!S.items.length)h+='<div class="card"><p class="mu">Nothing here yet. Add items or load the starter list.</p><button class="btn" onclick="addStarter()">Load starter list</button></div>';
+ var row=function(i,btn){return '<div class="row"><div class="bar" style="background:'+OW[i.owner]+'"></div><div class="grow" onclick="openItem(\''+i.id+'\')"><div class="nm">'+esc(i.name)+'</div><div class="mu">'+i.owner+'</div></div>'+btn+'</div>'};
+ if(buy.length)h+='<div class="card"><h3>🛒 To buy <span class="mu">'+buy.length+'</span></h3>'+buy.map(function(i){return row(i,'<button class="go ghost" onclick="setSt(\''+i.id+'\',\'todo\')">Bought ✓</button>')}).join('')+'</div>';
+ if(todo.length)h+='<div class="card"><h3>📋 To pack <span class="mu">'+todo.length+'</span></h3>'+todo.map(function(i){return row(i,'<button class="go btn" onclick="openItem(\''+i.id+'\',1)">Pack</button>')}).join('')+'</div>';
+ S.bags.forEach(function(b){var m=pk.filter(function(i){return i.bag===b.id});if(!m.length)return;
+  var pls=b.places.concat(['']);m.forEach(function(i){if(pls.indexOf(i.place)<0)pls.push(i.place)});
+  h+='<div class="card"><div class="bh" style="background:'+b.color+'"><span>🧳 '+esc(b.name)+'</span><span>'+m.length+'</span></div>';
+  pls.forEach(function(p){var g=m.filter(function(i){return i.place===p});if(!g.length)return;
+   h+='<div class="mu" style="margin-top:6px">'+(p?esc(p):'No specific place')+'</div>'+g.map(function(i){return '<button class="pill" onclick="openItem(\''+i.id+'\')"><span class="dot" style="background:'+OW[i.owner]+'"></span>'+esc(i.name)+'</button>'}).join('')});
+  h+='</div>'});
+ return h+'<button class="ghost" onclick="ui.sheet={t:\'bags\'};render()">Edit bags & places</button>'}
+function setSt(id,st){S.items.forEach(function(i){if(i.id===id){i.st=st;if(st!=='packed'){i.bag='';i.place=''}}});save();ui.sheet=null;render()}
+function openItem(id,pack){var it=S.items.filter(function(i){return i.id===id})[0];ui.sheet={t:'item',id:id,bag:it.bag||(pack&&(it.hint||ui.lastBag))||''};render()}
+function packTo(id,b,p){S.items.forEach(function(i){if(i.id===id){i.st='packed';i.bag=b;i.place=p}});ui.lastBag=b;save();ui.sheet=null;render()}
+function delItem(id){S.items=S.items.filter(function(i){return i.id!==id});save();ui.sheet=null;render()}
+function itemSet(id,k,v){S.items.forEach(function(i){if(i.id===id&&String(v).trim())i[k]=String(v).trim()});save();render()}
+function itemSheet(){
+ var sh=ui.sheet,it=S.items.filter(function(i){return i.id===sh.id})[0];if(!it)return '';
+ var h='<h2>'+esc(it.name)+'</h2><input value="'+esc(it.name)+'" onchange="itemSet(\''+it.id+'\',\'name\',this.value)">';
+ h+='<div class="chips">'+Object.keys(OW).map(function(o){return '<button class="chip '+(it.owner===o?'col':'')+'" '+(it.owner===o?'style="background:'+OW[o]+'"':'')+' onclick="itemSet(\''+it.id+'\',\'owner\',\''+o+'\')">'+o+'</button>'}).join('')+'</div>';
+ if(it.st==='packed'){var pb=bagOf(it.bag);h+='<p>📍 '+(pb?esc(pb.name):'')+(it.place?' / '+esc(it.place):'')+'</p><button class="btn" onclick="setSt(\''+it.id+'\',\'todo\')">Take out (back to To pack)</button><p class="mu">Move to another bag</p>'}
+ else h+='<p class="mu">Which bag?</p>';
+ h+='<div class="chips">'+S.bags.map(function(b){return '<button class="chip col" style="background:'+b.color+';'+(sh.bag===b.id?'outline:3px solid var(--tx)':'opacity:.85')+'" onclick="ui.sheet.bag=\''+b.id+'\';render()">'+esc(b.name)+'</button>'}).join('')+'</div>';
+ var b=bagOf(sh.bag);
+ if(b)h+='<p class="mu">Place</p><div class="chips">'+b.places.concat(['']).map(function(p){return '<button class="chip" onclick="packTo(\''+it.id+'\',\''+b.id+'\',\''+esc(p)+'\')">'+(p?esc(p):'No specific place')+'</button>'}).join('')+'</div>';
+ return h+'<div class="two" style="margin-top:12px">'+(it.st==='packed'?'':'<button class="ghost grow" onclick="setSt(\''+it.id+'\',\''+(it.st==='buy'?'todo':'buy')+'\')">'+(it.st==='buy'?'Already have it':'🛒 Mark as to-buy')+'</button>')+'<button class="ghost danger" onclick="delItem(\''+it.id+'\')">Delete</button></div>'}
+function bagsSheet(){
+ var h='<h2>Edit bags & places</h2><p class="mu">Separate places with commas.</p>';
+ S.bags.forEach(function(b){h+='<div class="card"><div class="two"><input type="color" value="'+b.color+'" style="width:52px;padding:2px" onchange="bagSet(\''+b.id+'\',\'color\',this.value)"><input value="'+esc(b.name)+'" onchange="bagSet(\''+b.id+'\',\'name\',this.value)"></div><div style="height:6px"></div><input value="'+esc(b.places.join(', '))+'" onchange="bagSet(\''+b.id+'\',\'places\',this.value)"><button class="ghost danger" style="margin-top:8px" onclick="bagDel(\''+b.id+'\')">Delete bag</button></div>'});
+ return h+'<button class="btn" onclick="bagAdd()">+ Add bag</button>'}
+function bagSet(id,k,v){S.bags.forEach(function(b){if(b.id===id){if(k==='places')b.places=v.split(',').map(function(s){return s.trim()}).filter(Boolean);else if(v.trim())b[k]=v.trim()}});save()}
+function bagAdd(){S.bags.push({id:uid(),name:'New bag',ko:'',color:'#0d9488',places:['Main','Front pocket']});save();render()}
+function bagDel(id){S.items.forEach(function(i){if(i.bag===id){i.st='todo';i.bag='';i.place=''}});S.bags=S.bags.filter(function(b){return b.id!==id});save();render()}
+
+/* ---------- Spend ---------- */
+function spendView(){
+ var tk=today(),tt=0,all=0,bc={};
+ S.exp.forEach(function(e){all+=e.a;if(dkey(e.t)===tk)tt+=e.a;bc[e.c]=(bc[e.c]||0)+e.a});
+ var h='<div class="card"><input id="amt" class="big" inputmode="decimal" placeholder="$ 0" value="'+esc(ui.amt)+'" oninput="ui.amt=this.value" onkeydown="if(event.key===\'Enter\')addExp()">'
+ +'<div style="height:8px"></div><input id="memo" placeholder="Note (optional), e.g. lunch 25" value="'+esc(ui.memo)+'" oninput="ui.memo=this.value" onkeydown="if(event.key===\'Enter\')addExp()">'
+ +'<div class="chips"><button class="chip '+(ui.cat?'':'on')+'" onclick="ui.cat=null;render()">Auto</button>'+Object.keys(CATS).map(function(c){return '<button class="chip '+(ui.cat===c?'col':'')+'" '+(ui.cat===c?'style="background:'+CATS[c]+'"':'')+' onclick="ui.cat=\''+c+'\';render()">'+c+'</button>'}).join('')+'</div>'
+ +'<button class="btn" style="width:100%" onclick="addExp()">Save</button></div>'
+ +'<div class="sum card"><div><b>$'+tt.toFixed(2)+'</b><span class="mu">Today</span></div><div><b>$'+all.toFixed(2)+'</b><span class="mu">Total</span></div></div>';
+ var cs=Object.keys(bc);
+ if(cs.length)h+='<div class="card"><h3>By category</h3>'+cs.sort(function(a,b){return bc[b]-bc[a]}).map(function(c){return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>'+c+'</span><b>$'+bc[c].toFixed(2)+'</b></div><div class="cb" style="background:'+(CATS[c]||'#64748b')+';width:'+Math.max(4,bc[c]/all*100)+'%"></div></div>'}).join('')+'</div>';
+ if(S.exp.length)h+='<div class="card"><h3>History</h3>'+S.exp.slice(0,40).map(function(e){var d=new Date(e.t);return '<div class="row" onclick="ui.sheet={t:\'exp\',id:\''+e.id+'\'};render()"><span class="dot" style="background:'+(CATS[e.c]||'#64748b')+'"></span><div class="grow"><div class="nm">'+esc(e.m||e.c)+'</div><div class="mu">'+e.c+' · '+(d.getMonth()+1)+'/'+d.getDate()+'</div></div><b>$'+e.a.toFixed(2)+'</b></div>'}).join('')+'</div>';
+ return h}
+function addExp(){
+ var a=parseFloat(String(ui.amt).replace(/[^0-9.]/g,'')),m=(ui.memo||'').trim();
+ if(!(a>0)){var mm=m.match(/(\d+(?:\.\d+)?)/);if(mm){a=parseFloat(mm[1]);m=m.replace(mm[0],'').replace(/\$|달러|불/g,'').trim()}}
+ if(!(a>0)){flash('Enter an amount');return}
+ S.exp.unshift({id:uid(),a:a,m:m,c:ui.cat||guess(m),t:Date.now()});
+ ui.amt='';ui.memo='';ui.cat=null;save();render();flash('Saved · $'+a.toFixed(2));
+ setTimeout(function(){var e=$('#amt');if(e)e.focus()},50)}
+function expSheet(){
+ var e=S.exp.filter(function(x){return x.id===ui.sheet.id})[0];if(!e)return '';
+ return '<h2>$'+e.a.toFixed(2)+' '+esc(e.m)+'</h2><p class="mu">Change category</p><div class="chips">'+Object.keys(CATS).map(function(c){return '<button class="chip '+(e.c===c?'col':'')+'" '+(e.c===c?'style="background:'+CATS[c]+'"':'')+' onclick="expCat(\''+e.id+'\',\''+c+'\')">'+c+'</button>'}).join('')+'</div><button class="ghost danger" onclick="expDel(\''+e.id+'\')">Delete</button>'}
+function expCat(id,c){S.exp.forEach(function(e){if(e.id===id)e.c=c});save();ui.sheet=null;render()}
+function expDel(id){S.exp=S.exp.filter(function(e){return e.id!==id});save();ui.sheet=null;render()}
+
+/* ---------- Plan ---------- */
+function planView(){
+ var h='';
+ if(!S.days.length)h+='<div class="card"><p class="mu">Sketch each day’s stops in order. Fill it in whenever you’re ready.</p></div>';
+ S.days.forEach(function(d){
+  h+='<div class="card"><div class="two"><input value="'+esc(d.title)+'" placeholder="e.g. Day 1 · Waikiki" onchange="daySet(\''+d.id+'\',\'title\',this.value)"><input type="date" value="'+d.date+'" style="width:150px" onchange="daySet(\''+d.id+'\',\'date\',this.value)"></div>';
+  d.stops.forEach(function(s,ix){h+='<div class="stop"><span class="mu" style="width:56px">'+esc(s.time)+'</span><div class="grow">'+esc(s.place)+'</div><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.place+' Hawaii')+'">📍</a><button class="ghost danger" onclick="stopDel(\''+d.id+'\','+ix+')">✕</button></div>'});
+  h+='<div class="stop"><input id="t'+d.id+'" placeholder="Time" style="width:76px"><input id="p'+d.id+'" placeholder="Place"><button class="btn" onclick="stopAdd(\''+d.id+'\')">Add</button></div><button class="ghost danger" style="margin-top:8px" onclick="dayDel(\''+d.id+'\')">Delete day</button></div>'});
+ return h+'<button class="btn" onclick="dayAdd()">+ Add day</button>'}
+function dayAdd(){S.days.push({id:uid(),title:'',date:'',stops:[]});save();render()}
+function dayDel(id){S.days=S.days.filter(function(d){return d.id!==id});save();render()}
+function daySet(id,k,v){S.days.forEach(function(d){if(d.id===id)d[k]=v});save()}
+function stopAdd(id){var t=$('#t'+id).value.trim(),p=$('#p'+id).value.trim();if(!p)return;S.days.forEach(function(d){if(d.id===id)d.stops.push({time:t,place:p})});save();render()}
+function stopDel(id,ix){S.days.forEach(function(d){if(d.id===id)d.stops.splice(ix,1)});save();render()}
+
+/* ---------- Settings / export ---------- */
+function setSheet(){
+ return '<h2>Trip settings</h2><p class="mu">During your trip dates, Spend opens first.</p><p style="margin:8px 0 4px">Start date</p><input type="date" value="'+S.trip.start+'" onchange="S.trip.start=this.value;save()"><p style="margin:12px 0 4px">End date</p><input type="date" value="'+S.trip.end+'" onchange="S.trip.end=this.value;save()">'
+ +'<div class="two" style="margin-top:14px"><button class="btn grow" onclick="ui.sheet=null;if(inTrip())ui.tab=\'spend\';render()">Save</button><button class="ghost" onclick="addStarter()">Add starter items</button></div>'
+ +'<button class="ghost" style="margin-top:10px;width:100%" onclick="ui.sheet={t:\'exp2\'};render()">Export / import data</button>'
+ +'<button class="ghost danger" style="margin-top:10px;width:100%" onclick="resetAll()">'+(ui.reset?'Tap again to erase everything':'Reset all data')+'</button>'}
+function resetAll(){if(!ui.reset){ui.reset=1;render();return}S=seed();save();ui.reset=0;ui.sheet=null;render()}
+function exportObj(){return{app:'hawaii-trip-notes',version:2,exportedAt:new Date().toISOString(),trip:S.trip,
+ bags:S.bags.map(function(b){return{name:b.name,color:b.color,places:b.places}}),
+ items:S.items.map(function(i){return{name:i.name,owner:i.owner,status:i.st==='buy'?'to_buy':i.st==='packed'?'packed':'to_pack',bag:(bagOf(i.bag)||{}).name||'',place:i.place}}),
+ expenses:S.exp.map(function(e){return{amount:e.a,note:e.m,category:e.c,date:new Date(e.t).toISOString()}}),itinerary:S.days}}
+function jsonText(){return JSON.stringify(exportObj(),null,2)}
+function csvText(){var q=function(s){return '"'+String(s).replace(/"/g,'""')+'"'};return 'date,category,amount,note\n'+S.exp.map(function(e){return [new Date(e.t).toISOString(),e.c,e.a,q(e.m)].join(',')}).join('\n')}
+async function dl(name,data){
+ try{var d=window.claude&&await window.claude.use('downloads');if(!d){flash('Saving isn’t available here. Use Copy JSON.');return}
+  if(name.slice(-3)==='csv'&&!S.exp.length){flash('No expenses yet');return}
+  await d.save({filename:name,data:data});flash('Saved')}catch(e){if(!e||e.code!=='declined')flash('Couldn’t save. Use Copy JSON.')}}
+function copyJson(){var t=$('#jx');try{navigator.clipboard.writeText(t.value).then(function(){flash('Copied')},function(){t.select();flash('Select and copy manually')})}catch(e){t.select();flash('Select and copy manually')}}
+function importJson(){
+ if(!ui.imp){ui.imp=1;render();return}
+ try{var o=JSON.parse(ui.impText||'');if(!o.items||!o.bags)throw 0;
+  var B=o.bags.map(function(b){return{id:uid(),name:b.name,ko:'',color:b.color||'#0d9488',places:b.places||[]}});
+  S={bags:B,items:o.items.map(function(i){var b=B.filter(function(x){return x.name===i.bag})[0],st=i.status==='to_buy'?'buy':(i.status==='packed'&&b)?'packed':'todo';return{id:uid(),name:i.name,owner:i.owner||'Shared',st:st,bag:b&&st==='packed'?b.id:'',place:st==='packed'?(i.place||''):'',hint:''}}),
+   exp:(o.expenses||[]).map(function(e){return{id:uid(),a:+e.amount||0,m:e.note||'',c:e.category||'Other',t:Date.parse(e.date)||Date.now()}}),days:o.itinerary||[],trip:o.trip||{start:'',end:''}};
+  save();ui.imp=0;ui.impText='';ui.sheet=null;render();flash('Imported')}catch(e){ui.imp=0;render();flash('That isn’t valid export JSON')}}
+function exportSheet(){
+ return '<h2>Export / import</h2><p class="mu">Save a file or copy the JSON into your other app. It includes bags, items, expenses, and itinerary.</p>'
+ +'<div class="two"><button class="btn grow" onclick="dl(\'hawaii-trip.json\',jsonText())">Save JSON</button><button class="ghost grow" onclick="dl(\'expenses.csv\',csvText())">Save expenses CSV</button></div>'
+ +'<button class="ghost" style="width:100%;margin-top:8px" onclick="copyJson()">Copy JSON</button><textarea id="jx" readonly>'+esc(jsonText())+'</textarea>'
+ +'<h3 style="margin-top:16px">Import</h3><textarea id="imp" placeholder="Paste exported JSON here" oninput="ui.impText=this.value">'+esc(ui.impText)+'</textarea>'
+ +'<button class="ghost danger" style="width:100%;margin-top:8px" onclick="importJson()">'+(ui.imp?'Tap again to replace all data':'Import (replaces current data)')+'</button>'}
+
+/* ---------- Shell ---------- */
+function setTab(t){ui.tab=t;ui.sheet=null;render();window.scrollTo(0,0)}
+function closeSheet(e){if(e.target.classList.contains('bk')){ui.sheet=null;ui.reset=0;ui.imp=0;render()}}
+function hdr(){
+ var t=today(),b;
+ if(inTrip())b='On trip';else if(S.trip.start&&t<S.trip.start)b='D-'+Math.round((new Date(S.trip.start)-new Date(t))/864e5);else if(S.trip.end&&t>S.trip.end)b='Trip over';else b='Planning';
+ return '<b>🌺 Hawaii Notes</b><span class="badge">'+b+'</span>'}
+function render(){
+ $('#hdr').innerHTML=hdr();
+ $('#main').innerHTML=({pack:packView,spend:spendView,plan:planView})[ui.tab]();
+ $('#tabs').innerHTML=[['pack','🧳','Pack'],['spend','💵','Spend'],['plan','🗺️','Plan']].map(function(x){return '<button class="'+(ui.tab===x[0]?'on':'')+'" onclick="setTab(\''+x[0]+'\')"><span>'+x[1]+'</span>'+x[2]+'</button>'}).join('')+'<button onclick="ui.sheet={t:\'set\'};render()"><span>⚙️</span>Settings</button>';
+ var s=ui.sheet;
+ $('#sheet').innerHTML=s?'<div class="bk" onclick="closeSheet(event)"><div class="sh">'+({item:itemSheet,bags:bagsSheet,exp:expSheet,set:setSheet,exp2:exportSheet})[s.t]()+'</div></div>':'';
+}
+render();
+</script></body></html>
