@@ -71,7 +71,6 @@ var PALETTE={
  '🌿 Mint':['#EDFAF5','#D7F4E9','#B9EBDD','#91DCCB','#69CDB8','#43B9A4','#279D8B','#197D70'],
  '🩵 Tiffany blue':['#E9FAF9','#D2F4F1','#B3EAE6','#8ADBD7','#5BCBC7','#35B7B8','#219DA4','#187F89'],
  '💜 Lavender':['#F5F0FC','#E9DFFA','#D8C8F3','#C4ADEB','#AB8DE0','#9270D1','#7655B9','#5E4198'],
- '🌼 Background neutrals':['#FFF8E9','#F8EBD6','#EEDCC5','#E6D0B9','#D9C3AA','#CDB79E','#BCA68F','#A9947D']
 };
 function paletteOpen(group,id){var v=group==='people'?personColor(id):group==='categories'?categoryColor(id):(bagOf(id)||{}).color||'#888888';ui.sheet={t:'palette',group:group,id:id,hex:v};render()}
 function paletteApply(v){
