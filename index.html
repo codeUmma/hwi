@@ -138,7 +138,7 @@ function packView(){
   var pls=b.places.concat(['']);m.forEach(function(i){if(pls.indexOf(i.place)<0)pls.push(i.place)});
   h+='<div class="card"><div class="bh" style="background:'+b.color+'"><span>🧳 '+esc(b.name)+'</span><span>'+m.length+'</span></div>';
   pls.forEach(function(p){var g=m.filter(function(i){return i.place===p});if(!g.length)return;
-   h+='<div class="mu" style="margin-top:6px">'+(p?esc(p):'No specific place')+'</div>'+g.map(function(i){return '<button class="pill" onclick="openItem(\''+i.id+'\')"><span class="dot" style="background:'+OW[i.owner]+'"></span>'+esc(i.name)+'</button>'}).join('')});
+   h+='<div class="mu" style="margin-top:6px">'+(p?esc(p):'No specific place')+'</div>'+g.map(function(i){return '<button class="pill" onclick="openItem(\''+i.id+'\')"><span class="dot" style="background:'+personColor(i.owner)+'"></span>'+esc(i.name)+'</button>'}).join('')});
   h+='</div>'});
  return h+'<button class="ghost" onclick="ui.sheet={t:\'bags\'};render()">Edit bags & places</button>'}
 function setSt(id,st){S.items.forEach(function(i){if(i.id===id){i.st=st;if(st!=='packed'){i.bag='';i.place=''}}});save();ui.sheet=null;render()}
@@ -149,7 +149,7 @@ function itemSet(id,k,v){S.items.forEach(function(i){if(i.id===id&&String(v).tri
 function itemSheet(){
  var sh=ui.sheet,it=S.items.filter(function(i){return i.id===sh.id})[0];if(!it)return '';
  var h='<h2>'+esc(it.name)+'</h2><input value="'+esc(it.name)+'" onchange="itemSet(\''+it.id+'\',\'name\',this.value)">';
- h+='<div class="chips">'+Object.keys(OW).map(function(o){return '<button class="chip '+(it.owner===o?'col':'')+'" '+(it.owner===o?'style="background:'+OW[o]+'"':'')+' onclick="itemSet(\''+it.id+'\',\'owner\',\''+o+'\')">'+esc(personName(o))+'</button>'}).join('')+'</div>';
+ h+='<div class="chips">'+Object.keys(OW).map(function(o){return '<button class="chip '+(it.owner===o?'col':'')+'" '+(it.owner===o?'style="background:'+personColor(o)+'"':'')+' onclick="itemSet(\''+it.id+'\',\'owner\',\''+o+'\')">'+esc(personName(o))+'</button>'}).join('')+'</div>';
  if(it.st==='packed'){var pb=bagOf(it.bag);h+='<p>📍 '+(pb?esc(pb.name):'')+(it.place?' / '+esc(it.place):'')+'</p><button class="btn" onclick="setSt(\''+it.id+'\',\'todo\')">Take out (back to To pack)</button><p class="mu">Move to another bag</p>'}
  else h+='<p class="mu">Which bag?</p>';
  h+='<div class="chips">'+S.bags.map(function(b){return '<button class="chip col" style="background:'+b.color+';'+(sh.bag===b.id?'outline:3px solid var(--tx)':'opacity:.85')+'" onclick="ui.sheet.bag=\''+b.id+'\';render()">'+esc(b.name)+'</button>'}).join('')+'</div>';
@@ -174,7 +174,7 @@ function spendView(){
  +'<button class="btn" style="width:100%" onclick="addExp()">Save</button></div>'
  +'<div class="sum card"><div><b>$'+tt.toFixed(2)+'</b><span class="mu">Today</span></div><div><b>$'+all.toFixed(2)+'</b><span class="mu">Total</span></div></div>';
  var cs=Object.keys(bc);
- if(cs.length)h+='<div class="card"><h3>By category</h3>'+cs.sort(function(a,b){return bc[b]-bc[a]}).map(function(c){return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>'+c+'</span><b>$'+bc[c].toFixed(2)+'</b></div><div class="cb" style="background:'+(CATS[c]||'#64748b')+';width:'+Math.max(4,bc[c]/all*100)+'%"></div></div>'}).join('')+'</div>';
+ if(cs.length)h+='<div class="card"><h3>By category</h3>'+cs.sort(function(a,b){return bc[b]-bc[a]}).map(function(c){return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>'+c+'</span><b>$'+bc[c].toFixed(2)+'</b></div><div class="cb" style="background:'+(categoryColor(c))+';width:'+Math.max(4,bc[c]/all*100)+'%"></div></div>'}).join('')+'</div>';
  if(S.exp.length)h+='<div class="card"><h3>History</h3>'+S.exp.slice(0,40).map(function(e){var d=new Date(e.t);return '<div class="row" onclick="ui.sheet={t:\'exp\',id:\''+e.id+'\'};render()"><span class="dot" style="background:'+(categoryColor(e.c)||'#64748b')+'"></span><div class="grow"><div class="nm">'+esc(e.m||e.c)+'</div><div class="mu">'+e.c+' · '+(d.getMonth()+1)+'/'+d.getDate()+'</div></div><b>$'+e.a.toFixed(2)+'</b></div>'}).join('')+'</div>';
  return h}
 function addExp(){
@@ -186,7 +186,7 @@ function addExp(){
  setTimeout(function(){var e=$('#amt');if(e)e.focus()},50)}
 function expSheet(){
  var e=S.exp.filter(function(x){return x.id===ui.sheet.id})[0];if(!e)return '';
- return '<h2>$'+e.a.toFixed(2)+' '+esc(e.m)+'</h2><p class="mu">Change category</p><div class="chips">'+Object.keys(CATS).map(function(c){return '<button class="chip '+(e.c===c?'col':'')+'" '+(e.c===c?'style="background:'+CATS[c]+'"':'')+' onclick="expCat(\''+e.id+'\',\''+c+'\')">'+c+'</button>'}).join('')+'</div><button class="ghost danger" onclick="expDel(\''+e.id+'\')">Delete</button>'}
+ return '<h2>$'+e.a.toFixed(2)+' '+esc(e.m)+'</h2><p class="mu">Change category</p><div class="chips">'+Object.keys(CATS).map(function(c){return '<button class="chip '+(e.c===c?'col':'')+'" '+(e.c===c?'style="background:'+categoryColor(c)+'"':'')+' onclick="expCat(\''+e.id+'\',\''+c+'\')">'+c+'</button>'}).join('')+'</div><button class="ghost danger" onclick="expDel(\''+e.id+'\')">Delete</button>'}
 function expCat(id,c){S.exp.forEach(function(e){if(e.id===id)e.c=c});save();ui.sheet=null;render()}
 function expDel(id){S.exp=S.exp.filter(function(e){return e.id!==id});save();ui.sheet=null;render()}
 
