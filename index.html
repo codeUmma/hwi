@@ -72,7 +72,7 @@ var PALETTE={
  '🩵 Tiffany blue':['#E9FAF9','#D2F4F1','#B3EAE6','#8ADBD7','#5BCBC7','#35B7B8','#219DA4','#187F89'],
  '💜 Lavender':['#F5F0FC','#E9DFFA','#D8C8F3','#C4ADEB','#AB8DE0','#9270D1','#7655B9','#5E4198'],
 };
-function paletteOpen(group,id){var v=group==='people'?personColor(id):group==='categories'?categoryColor(id):(bagOf(id)||{}).color||'#888888';ui.sheet={t:'palette',group:group,id:id,hex:v};render()}
+function paletteOpen(group,id){var v=group==='people'?personColor(id):group==='categories'?categoryColor(id):(bagOf(id)||{}).color||'#888888';ui.sheet={t:'palette',group:group,id:id,hex:v,returnTo:'set'};render()}
 function paletteApply(v){
  if(!/^#[0-9a-fA-F]{6}$/.test(v||'')){flash('Enter a valid HEX color');return}
  var s=ui.sheet;if(!s||s.t!=='palette')return;
@@ -273,7 +273,7 @@ function exportSheet(){
 
 /* ---------- Shell ---------- */
 function setTab(t){ui.tab=t;ui.sheet=null;render();window.scrollTo(0,0)}
-function closeSheet(e){if(e.target.classList.contains('bk')){ui.sheet=null;ui.reset=0;ui.imp=0;render()}}
+function closeSheet(e){if(e.target.classList.contains('bk')){var s=ui.sheet;if(s&&s.t==='palette'&&s.returnTo==='set'){ui.sheet={t:'set'}}else{ui.sheet=null}ui.reset=0;ui.imp=0;render()}}
 function hdr(){
  var t=today(),b;
  if(inTrip())b='On trip';else if(S.trip.start&&t<S.trip.start)b='D-'+Math.round((new Date(S.trip.start)-new Date(t))/864e5);else if(S.trip.end&&t>S.trip.end)b='Trip over';else b='Planning';
